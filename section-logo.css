@@ -1,0 +1,1 @@
+.intro{grid-template-columns:.75fr 1.05fr .75fr;gap:4vw}.section-room-logo{width:100%;max-width:310px;justify-self:end;align-self:center;display:block;filter:drop-shadow(0 16px 25px rgba(24,39,53,.18))}@media(max-width:760px){.intro{grid-template-columns:1fr;gap:28px}.section-room-logo{justify-self:start;width:min(260px,78vw)}}
