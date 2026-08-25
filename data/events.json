@@ -1,0 +1,14 @@
+[
+  {
+    "id": "soiree-point-g-2026",
+    "slug": "soiree-point-g-2026",
+    "title": "Soirée Point G",
+    "summary": "Une soirée festive dans l'ambiance distinctive de la Salle Point G.",
+    "description": "Venez découvrir la Salle Point G lors d’une soirée où musique, rencontres et ambiance feutrée sont au rendez-vous.",
+    "date": "2026-10-17T20:00",
+    "location": "99, rue Saint-Georges, Saint-Jérôme",
+    "image": "/assets/point-g-salle.jpg",
+    "eventbriteId": "1998914026663",
+    "published": true
+  }
+]

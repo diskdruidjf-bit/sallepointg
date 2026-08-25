@@ -1,0 +1,17 @@
+{
+  "name": "salle-point-g",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site et gestion des événements de la Salle Point G",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "check:cloudflare": "wrangler types --check"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

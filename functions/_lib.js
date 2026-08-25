@@ -1,0 +1,66 @@
+const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' };
+
+export function json(body, status = 200, headers = {}) {
+  return new Response(JSON.stringify(body), { status, headers: { ...JSON_HEADERS, ...headers } });
+}
+
+export function eventFromRow(row) {
+  if (!row) return null;
+  return { ...row, published: Boolean(row.published) };
+}
+
+export function cleanEvent(input, existing = {}) {
+  const text = (name, max = 5000) => String(input[name] ?? existing[name] ?? '').trim().slice(0, max);
+  const title = text('title', 140);
+  const slugSource = text('slug', 100) || title;
+  const slug = slugSource.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const event = {
+    id: existing.id || crypto.randomUUID(), slug, title,
+    summary: text('summary', 300), description: text('description'),
+    date: text('date', 30), location: text('location', 200),
+    image: text('image', 500) || '/assets/point-g-salle.jpg',
+    eventbriteId: text('eventbriteId', 30), published: input.published === true
+  };
+  if (!event.title || !event.slug || !/^\d{10,20}$/.test(event.eventbriteId) || Number.isNaN(Date.parse(event.date))) throw new Error('Titre, date valide et identifiant Eventbrite sont requis.');
+  return event;
+}
+
+export async function requestBody(request) {
+  const length = Number(request.headers.get('content-length') || 0);
+  if (length > 100_000) throw new Error('Requête trop volumineuse.');
+  return request.json();
+}
+
+export function tokenFromRequest(request) {
+  return /(?:^|;\s*)spg_session=([^;]+)/.exec(request.headers.get('cookie') || '')?.[1] || '';
+}
+
+export async function getSession(request, env) {
+  const token = tokenFromRequest(request);
+  if (!token) return null;
+  const record = await env.DB.prepare('SELECT token, csrf, expires_at FROM sessions WHERE token = ? AND expires_at > ?').bind(token, Date.now()).first();
+  return record ? { token: record.token, csrf: record.csrf } : null;
+}
+
+export async function requireAdmin(context) {
+  const session = await getSession(context.request, context.env);
+  if (!session || context.request.headers.get('x-csrf-token') !== session.csrf) return { error: json({ error: 'Accès refusé.' }, 403) };
+  return { session };
+}
+
+export async function secureEqual(provided, expected) {
+  const encoder = new TextEncoder();
+  const [a, b] = await Promise.all([crypto.subtle.digest('SHA-256', encoder.encode(provided)), crypto.subtle.digest('SHA-256', encoder.encode(expected))]);
+  const left = new Uint8Array(a); const right = new Uint8Array(b); let difference = 0;
+  for (let index = 0; index < left.length; index += 1) difference |= left[index] ^ right[index];
+  return difference === 0;
+}
+
+export function randomToken(bytes = 32) {
+  const values = new Uint8Array(bytes); crypto.getRandomValues(values);
+  return Array.from(values, value => value.toString(16).padStart(2, '0')).join('');
+}
+
+export function logError(error, request) {
+  console.error(JSON.stringify({ message: 'request failed', path: new URL(request.url).pathname, error: error instanceof Error ? error.message : String(error) }));
+}
