@@ -4,5 +4,13 @@
   "pages_build_output_dir": ".",
   "compatibility_date": "2026-08-25",
   "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sallepointg-events",
+      "database_id": "1d3030c1-2078-4479-8061-9a713d71039f",
+      "migrations_dir": "./migrations"
+    }
+  ],
   "observability": { "enabled": true }
 }
