@@ -12,5 +12,12 @@
       "migrations_dir": "./migrations"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "EVENT_IMAGES",
+      "bucket_name": "sallepointg-event-images",
+      "preview_bucket_name": "sallepointg-event-images-preview"
+    }
+  ],
   "observability": { "enabled": true }
 }

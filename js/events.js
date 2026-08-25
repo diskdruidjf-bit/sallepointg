@@ -1,5 +1,6 @@
 'use strict';
 document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/events.css">');
+document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/event-images.css">');
 const list = document.querySelector('#event-list');
 const escapeHtml = value => String(value).replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[char]);
 const formatDate = value => new Intl.DateTimeFormat('fr-CA', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(value));

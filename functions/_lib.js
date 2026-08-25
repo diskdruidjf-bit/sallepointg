@@ -61,6 +61,18 @@ export function randomToken(bytes = 32) {
   return Array.from(values, value => value.toString(16).padStart(2, '0')).join('');
 }
 
+export function imageUploadInfo(bytes, contentType) {
+  const type = String(contentType || '').toLowerCase().split(';')[0].trim();
+  const signatures = {
+    'image/jpeg': { extension: 'jpg', valid: bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff },
+    'image/png': { extension: 'png', valid: bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a },
+    'image/webp': { extension: 'webp', valid: String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP' }
+  };
+  const match = signatures[type];
+  if (!match || !match.valid) throw new Error('Le fichier doit être une image JPEG, PNG ou WebP valide.');
+  return { contentType: type, extension: match.extension };
+}
+
 export function logError(error, request) {
   console.error(JSON.stringify({ message: 'request failed', path: new URL(request.url).pathname, error: error instanceof Error ? error.message : String(error) }));
 }

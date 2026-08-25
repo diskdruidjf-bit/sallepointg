@@ -6,7 +6,19 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 
 const ROOT = __dirname;
-const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml' };
+
+function imageUploadInfo(bytes, contentType) {
+  const type = String(contentType || '').toLowerCase().split(';')[0].trim();
+  const signatures = {
+    'image/jpeg': { extension: 'jpg', valid: bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff },
+    'image/png': { extension: 'png', valid: bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a },
+    'image/webp': { extension: 'webp', valid: bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP' }
+  };
+  const match = signatures[type];
+  if (!match || !match.valid) throw new Error('Le fichier doit être une image JPEG, PNG ou WebP valide.');
+  return { contentType: type, extension: match.extension };
+}
 
 function cleanEvent(input, existing = {}) {
   const text = (name, max = 5000) => String(input[name] ?? existing[name] ?? '').trim().slice(0, max);
@@ -29,6 +41,7 @@ function cleanEvent(input, existing = {}) {
 function createApp(options = {}) {
   const root = options.root || ROOT;
   const dataFile = options.dataFile || path.join(root, 'data/events.json');
+  const uploadDir = options.uploadDir || path.join(root, 'media');
   const password = options.adminPassword || process.env.ADMIN_PASSWORD;
   const sessions = new Map();
 
@@ -52,6 +65,11 @@ function createApp(options = {}) {
     let raw = '';
     for await (const chunk of req) { raw += chunk; if (raw.length > 100_000) throw new Error('Requête trop volumineuse.'); }
     return JSON.parse(raw || '{}');
+  }
+  async function binaryBody(req, maxSize = 8 * 1024 * 1024) {
+    const chunks = []; let size = 0;
+    for await (const chunk of req) { size += chunk.length; if (size > maxSize) throw new Error('L’image dépasse la limite de 8 Mo.'); chunks.push(chunk); }
+    return Buffer.concat(chunks);
   }
   async function serve(res, file) {
     const resolved = path.resolve(root, file.replace(/^\/+/, ''));
@@ -96,6 +114,13 @@ function createApp(options = {}) {
         const active = session(req); if (active) sessions.delete(active.token);
         return json(res, 200, { ok: true }, { 'set-cookie': 'spg_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0' });
       }
+      if (url.pathname === '/api/admin/images' && req.method === 'POST') {
+        const active = session(req);
+        if (!active || req.headers['x-csrf-token'] !== active.csrf) return json(res, 403, { error: 'Accès refusé.' });
+        const image = await binaryBody(req); const { extension } = imageUploadInfo(image, req.headers['content-type']);
+        const key = `${crypto.randomUUID()}.${extension}`; await fs.mkdir(uploadDir, { recursive:true }); await fs.writeFile(path.join(uploadDir, key), image);
+        return json(res, 201, { url:`/media/${key}` });
+      }
       if (url.pathname === '/api/events' && req.method === 'POST') {
         const active = session(req);
         if (!active || req.headers['x-csrf-token'] !== active.csrf) return json(res, 403, { error: 'Accès refusé.' });
@@ -127,4 +152,4 @@ if (require.main === module) {
   createApp().listen(port, () => console.log(`Salle Point G : http://localhost:${port}`));
 }
 
-module.exports = { createApp, cleanEvent };
+module.exports = { createApp, cleanEvent, imageUploadInfo };

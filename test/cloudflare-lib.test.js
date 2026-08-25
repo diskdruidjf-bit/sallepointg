@@ -14,3 +14,11 @@ test('la comparaison Cloudflare des secrets est exacte', async () => {
   assert.equal(await secureEqual('secret', 'secret'), true);
   assert.equal(await secureEqual('secret', 'autre'), false);
 });
+
+test('valide le contenu réel des images téléversées', async () => {
+  const { imageUploadInfo } = await import('../functions/_lib.js');
+  const jpeg = Uint8Array.from([0xff, 0xd8, 0xff, 0xe0]);
+  assert.deepEqual(imageUploadInfo(jpeg, 'image/jpeg'), { contentType:'image/jpeg', extension:'jpg' });
+  assert.throws(() => imageUploadInfo(Uint8Array.from([1, 2, 3]), 'image/jpeg'), /image JPEG/);
+  assert.throws(() => imageUploadInfo(jpeg, 'text/html'), /image JPEG/);
+});

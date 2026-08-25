@@ -1,5 +1,6 @@
 'use strict';
 document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/events.css">');
+document.head.insertAdjacentHTML('beforeend', '<link rel="stylesheet" href="/event-images.css">');
 const root = document.querySelector('#event-detail');
 const escapeHtml = value => String(value).replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' })[char]);
 const slug = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop() || '');
