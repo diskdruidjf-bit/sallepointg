@@ -27,13 +27,18 @@ export function cleanEvent(input, existing = {}) {
 
 export async function requestBody(request) {
   const length = Number(request.headers.get('content-length') || 0);
-  if (length > 100_000) throw new Error('Requête trop volumineuse.');
+  if (length > 12 * 1024 * 1024) throw new Error('Requête trop volumineuse.');
   return request.json();
 }
 
 export async function eventRequest(request) {
   const contentType = request.headers.get('content-type') || '';
-  if (!contentType.toLowerCase().startsWith('multipart/form-data')) return { input: await requestBody(request), image: null };
+  if (!contentType.toLowerCase().startsWith('multipart/form-data')) {
+    const input = await requestBody(request);
+    const image = input.imageUpload || null;
+    delete input.imageUpload;
+    return { input, image };
+  }
   const length = Number(request.headers.get('content-length') || 0);
   if (length > 9 * 1024 * 1024) throw new Error('L’image dépasse la limite de 8 Mo.');
   const form = await request.formData();
@@ -48,9 +53,18 @@ export async function eventRequest(request) {
 
 export async function storeEventImage(env, file) {
   if (!env.EVENT_IMAGES) throw new Error('Le stockage des images n’est pas configuré.');
-  if (file.size > 8 * 1024 * 1024) throw new Error('L’image dépasse la limite de 8 Mo.');
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const info = imageUploadInfo(bytes, file.type);
+  let bytes; let type;
+  if (file && typeof file.arrayBuffer === 'function') {
+    if (file.size > 8 * 1024 * 1024) throw new Error('L’image dépasse la limite de 8 Mo.');
+    bytes = new Uint8Array(await file.arrayBuffer()); type = file.type;
+  } else {
+    type = String(file?.type || '');
+    const encoded = String(file?.data || '');
+    if (!encoded || encoded.length > 11 * 1024 * 1024 || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) throw new Error('Données d’image invalides.');
+    try { bytes = Uint8Array.from(atob(encoded), character => character.charCodeAt(0)); } catch { throw new Error('Données d’image invalides.'); }
+    if (bytes.byteLength > 8 * 1024 * 1024) throw new Error('L’image dépasse la limite de 8 Mo.');
+  }
+  const info = imageUploadInfo(bytes, type);
   const key = `${crypto.randomUUID()}.${info.extension}`;
   await env.EVENT_IMAGES.put(key, bytes, { httpMetadata: { contentType: info.contentType } });
   return `/media/${key}`;

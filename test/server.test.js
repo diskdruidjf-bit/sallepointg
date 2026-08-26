@@ -50,8 +50,10 @@ test('l’administration exige une session et permet le CRUD', async t => {
   assert.equal(imageResponse.status, 201); const uploaded = await imageResponse.json();
   assert.match(uploaded.url, /^\/media\/[0-9a-f-]{36}\.jpg$/);
   assert.equal((await fs.stat(path.join(uploadDir, path.basename(uploaded.url)))).size, 4);
-  const createdResponse = await fetch(`${base}/api/events`, { method:'POST', headers, body:JSON.stringify({ title:'Nouveau', date:'2026-12-01T19:00', eventbriteId:'1998914026663', published:false }) });
+  const encodedPng = Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]).toString('base64');
+  const createdResponse = await fetch(`${base}/api/events`, { method:'POST', headers, body:JSON.stringify({ title:'Nouveau', date:'2026-12-01T19:00', eventbriteId:'1998914026663', published:false, imageUpload:{type:'image/png',data:encodedPng} }) });
   assert.equal(createdResponse.status, 201); const created = await createdResponse.json();
+  assert.match(created.image, /^\/media\/[0-9a-f-]{36}\.png$/);
   const privateEvents = await (await fetch(`${base}/api/events`, {headers:{cookie}})).json();
   assert.equal(privateEvents.length, 3);
   const updated = await fetch(`${base}/api/events/${created.id}`, { method:'PUT', headers, body:JSON.stringify({...created, title:'Nouveau titre', published:true}) });

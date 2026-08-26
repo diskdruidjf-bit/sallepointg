@@ -35,3 +35,14 @@ test('reçoit et stocke un événement et son image dans une même requête', as
   assert.match(url, /^\/media\/[0-9a-f-]{36}\.png$/);
   assert.equal(stored[2].httpMetadata.contentType, 'image/png');
 });
+
+test('reçoit une image encodée explicitement en JSON', async () => {
+  const { eventRequest, storeEventImage } = await import('../functions/_lib.js');
+  const png = Uint8Array.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]);
+  const request = new Request('https://example.test/api/events', { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({title:'JSON',imageUpload:{type:'image/png',data:Buffer.from(png).toString('base64')}}) });
+  const parsed = await eventRequest(request);
+  assert.equal(parsed.input.imageUpload, undefined);
+  let stored;
+  await storeEventImage({EVENT_IMAGES:{put:async(...args)=>{stored=args;}}},parsed.image);
+  assert.equal(stored[1].byteLength,8); assert.equal(stored[2].httpMetadata.contentType,'image/png');
+});

@@ -17,6 +17,7 @@ export async function onRequestPost(context) {
     const duplicate = await context.env.DB.prepare('SELECT id FROM events WHERE slug = ?').bind(event.slug).first();
     if (duplicate) return json({ error: 'Cette adresse d’événement existe déjà.' }, 409);
     if (image) event.image = await storeEventImage(context.env, image);
+    if (event.image === '/assets/point-g-salle.jpg') return json({ error: 'Sélectionnez une image pour cet événement.' }, 400);
     await context.env.DB.prepare('INSERT INTO events (id, slug, title, summary, description, date, location, image, eventbriteId, published) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(event.id, event.slug, event.title, event.summary, event.description, event.date, event.location, event.image, event.eventbriteId, event.published ? 1 : 0).run();
     return json(event, 201);
   } catch (error) { logError(error, context.request); return json({ error: error instanceof Error ? error.message : 'Requête invalide.' }, 400); }

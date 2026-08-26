@@ -63,7 +63,7 @@ function createApp(options = {}) {
   }
   async function body(req) {
     let raw = '';
-    for await (const chunk of req) { raw += chunk; if (raw.length > 100_000) throw new Error('Requête trop volumineuse.'); }
+    for await (const chunk of req) { raw += chunk; if (raw.length > 12 * 1024 * 1024) throw new Error('Requête trop volumineuse.'); }
     return JSON.parse(raw || '{}');
   }
   async function binaryBody(req, maxSize = 8 * 1024 * 1024) {
@@ -73,7 +73,19 @@ function createApp(options = {}) {
   }
   async function eventBody(req, existing = {}) {
     const contentType = String(req.headers['content-type'] || '');
-    if (!contentType.toLowerCase().startsWith('multipart/form-data')) return cleanEvent(await body(req), existing);
+    if (!contentType.toLowerCase().startsWith('multipart/form-data')) {
+      const input = await body(req); const upload = input.imageUpload; delete input.imageUpload;
+      const event = cleanEvent(input, existing);
+      if (upload) {
+        const encoded=String(upload.data||'');
+        if (!encoded || encoded.length > 11 * 1024 * 1024 || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) throw new Error('Données d’image invalides.');
+        const bytes=Buffer.from(encoded,'base64');
+        if (bytes.length > 8 * 1024 * 1024) throw new Error('L’image dépasse la limite de 8 Mo.');
+        const {extension}=imageUploadInfo(bytes,upload.type); const key=`${crypto.randomUUID()}.${extension}`;
+        await fs.mkdir(uploadDir,{recursive:true}); await fs.writeFile(path.join(uploadDir,key),bytes); event.image=`/media/${key}`;
+      }
+      return event;
+    }
     const raw = await binaryBody(req, 9 * 1024 * 1024);
     const form = await new Request('http://localhost/event', { method:'POST', headers:{ 'content-type':contentType }, body:raw }).formData();
     const serialized = form.get('event');
@@ -148,6 +160,7 @@ function createApp(options = {}) {
         if (!active || req.headers['x-csrf-token'] !== active.csrf) return json(res, 403, { error: 'Accès refusé.' });
         const events = await readEvents(); const event = await eventBody(req);
         if (events.some(item => item.slug === event.slug)) return json(res, 409, { error: 'Cette adresse d’événement existe déjà.' });
+        if (event.image === '/assets/point-g-salle.jpg') return json(res, 400, { error: 'Sélectionnez une image pour cet événement.' });
         events.push(event); await writeEvents(events); return json(res, 201, event);
       }
       if (url.pathname.startsWith('/api/events/') && ['PUT', 'DELETE'].includes(req.method)) {
@@ -159,6 +172,7 @@ function createApp(options = {}) {
         if (req.method === 'DELETE') { events.splice(index, 1); await writeEvents(events); return json(res, 200, { ok: true }); }
         const event = await eventBody(req, events[index]);
         if (events.some((item, i) => i !== index && item.slug === event.slug)) return json(res, 409, { error: 'Cette adresse d’événement existe déjà.' });
+        if (event.image === '/assets/point-g-salle.jpg') return json(res, 400, { error: 'Sélectionnez une image pour cet événement.' });
         events[index] = event; await writeEvents(events); return json(res, 200, event);
       }
       if (url.pathname === '/evenements' || url.pathname === '/evenements/') return serve(res, 'events.html');
