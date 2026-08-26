@@ -77,4 +77,7 @@ test('sert les pages publiques et privées', async t => {
   assert.match(admin, /Sélectionnez l’image, puis cliquez sur « Enregistrer »/);
   assert.match(await fs.readFile(path.resolve(__dirname, '../js/admin.js'), 'utf8'), /imageFile\.required = editor\.elements\.image\.value/);
   assert.match(await fs.readFile(path.resolve(__dirname, '../events.css'), 'utf8'), /page-hero[^}]+point-g-salle\.jpg/);
+  assert.match(admin, /Administration/);
+  const home = await (await fetch(`${base}/`)).text();
+  assert.match(home, /id="event-popup"/); assert.match(home, /home-event-popup\.js/); assert.match(home, /eb_widgets\.js/);
 });
