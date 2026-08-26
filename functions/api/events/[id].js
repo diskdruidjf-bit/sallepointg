@@ -20,7 +20,7 @@ export async function onRequestPut(context) {
     if (duplicate) return json({ error: 'Cette adresse d’événement existe déjà.' }, 409);
     if (image) event.image = await storeEventImage(context.env, image);
     if (event.image === '/assets/point-g-salle.jpg') return json({ error: 'Sélectionnez une image pour cet événement.' }, 400);
-    await context.env.DB.prepare('UPDATE events SET slug=?, title=?, summary=?, description=?, date=?, location=?, image=?, eventbriteId=?, published=?, updated_at=CURRENT_TIMESTAMP WHERE id=?').bind(event.slug, event.title, event.summary, event.description, event.date, event.location, event.image, event.eventbriteId, event.published ? 1 : 0, id).run();
+    await context.env.DB.prepare('UPDATE events SET slug=?, title=?, summary=?, description=?, date=?, location=?, image=?, eventbriteId=?, ticketType=?, ticketUrl=?, published=?, updated_at=CURRENT_TIMESTAMP WHERE id=?').bind(event.slug, event.title, event.summary, event.description, event.date, event.location, event.image, event.eventbriteId, event.ticketType, event.ticketUrl, event.published ? 1 : 0, id).run();
     return json(event);
   } catch (error) { logError(error, context.request); return json({ error: error instanceof Error ? error.message : 'Requête invalide.' }, 400); }
 }

@@ -3,5 +3,6 @@
 .image-preview{overflow:hidden;background:#eef0f1;aspect-ratio:2/1}
 .image-preview img{display:block;width:100%;height:100%;object-fit:cover}
 .admin-form label small{color:#69717a;font-size:11px;font-weight:400;letter-spacing:0;text-transform:none}
+.admin-form select{border:1px solid #c6c9cc;padding:12px;background:#fff;font:14px var(--body);width:100%}
 .admin-form button:disabled{cursor:wait;opacity:.55}
 @media(max-width:760px){.event-hero{min-height:0}.event-hero .hero-content{padding-top:0}.event-hero h1{font-size:clamp(28px,8vw,42px);letter-spacing:-1px;margin-bottom:8px}.event-hero .kicker{margin-bottom:8px}.event-hero .hero-content>p:not(.kicker){font-size:13px;line-height:1.35;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}

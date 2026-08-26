@@ -1,0 +1,2 @@
+ALTER TABLE events ADD COLUMN ticketType TEXT NOT NULL DEFAULT 'eventbrite';
+ALTER TABLE events ADD COLUMN ticketUrl TEXT NOT NULL DEFAULT '';

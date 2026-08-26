@@ -12,9 +12,12 @@ if(!sessionStorage.getItem('spg-event-popup-closed'))fetch('/api/events').then(r
   const event=events.filter(item=>new Date(item.date)>=new Date()).sort((left,right)=>new Date(left.date)-new Date(right.date))[0];
   if(!event)return;
   const href=`/evenements/${encodeURIComponent(event.slug)}`;
-  popupContent.innerHTML=`<div class="event-popup-grid"><img class="event-popup-image" src="/assets/jeudis-humour-popup.png" alt="Affiche des Jeudis humour à la Salle Point G"/><div class="event-popup-copy"><p class="kicker dark">Prochain événement · ${popupEscape(popupDate(event.date))}</p><h2 id="event-popup-title">${popupEscape(event.title)}</h2><p>${popupEscape(event.summary)}</p><div class="event-popup-actions"><button class="button" id="home-eventbrite-trigger" type="button">Acheter des billets</button><a class="event-popup-link" href="${href}">Voir la fiche →</a></div></div></div>`;
+  const ticketType=event.ticketType||'eventbrite';
+  const buy=ticketType==='external'?`<a class="button" id="external-ticket-trigger" href="${popupEscape(event.ticketUrl)}" target="_blank" rel="noopener noreferrer">Acheter des billets</a>`:ticketType==='eventbrite'?'<button class="button" id="home-eventbrite-trigger" type="button">Acheter des billets</button>':'';
+  popupContent.innerHTML=`<div class="event-popup-grid"><img class="event-popup-image" src="/assets/jeudis-humour-popup.png" alt="Affiche des Jeudis humour à la Salle Point G"/><div class="event-popup-copy"><p class="kicker dark">Prochain événement · ${popupEscape(popupDate(event.date))}</p><h2 id="event-popup-title">${popupEscape(event.title)}</h2><p>${popupEscape(event.summary)}</p><div class="event-popup-actions">${buy}<a class="event-popup-link" href="${href}">Voir la fiche →</a></div></div></div>`;
   popup.showModal();
-  document.querySelector('#home-eventbrite-trigger').addEventListener('click',closeEventPopup);
+  document.querySelector('#home-eventbrite-trigger,#external-ticket-trigger')?.addEventListener('click',closeEventPopup);
+  if(ticketType!=='eventbrite')return;
   const initialize=()=>{if(!window.EBWidgets)return setTimeout(initialize,100);window.EBWidgets.createWidget({widgetType:'checkout',eventId:event.eventbriteId,modal:true,modalTriggerElementId:'home-eventbrite-trigger',onOrderComplete:()=>{}});};
   initialize();
 }).catch(()=>{});

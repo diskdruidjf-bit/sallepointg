@@ -14,14 +14,18 @@ export function cleanEvent(input, existing = {}) {
   const title = text('title', 140);
   const slugSource = text('slug', 100) || title;
   const slug = slugSource.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const ticketType = ['eventbrite','external','none'].includes(input.ticketType) ? input.ticketType : (existing.ticketType || 'eventbrite');
+  const ticketUrl = text('ticketUrl', 1000);
   const event = {
     id: existing.id || crypto.randomUUID(), slug, title,
     summary: text('summary', 300), description: text('description'),
     date: text('date', 30), location: text('location', 200),
     image: text('image', 500) || '/assets/point-g-salle.jpg',
-    eventbriteId: text('eventbriteId', 30), published: input.published === true
+    eventbriteId: text('eventbriteId', 30), ticketType, ticketUrl, published: input.published === true
   };
-  if (!event.title || !event.slug || !/^\d{10,20}$/.test(event.eventbriteId) || Number.isNaN(Date.parse(event.date))) throw new Error('Titre, date valide et identifiant Eventbrite sont requis.');
+  if (!event.title || !event.slug || Number.isNaN(Date.parse(event.date))) throw new Error('Titre et date valide sont requis.');
+  if (ticketType === 'eventbrite' && !/^\d{10,20}$/.test(event.eventbriteId)) throw new Error('Un identifiant Eventbrite valide est requis.');
+  if (ticketType === 'external') { try { if (new URL(ticketUrl).protocol !== 'https:') throw new Error(); } catch { throw new Error('Une adresse HTTPS de billetterie valide est requise.'); } }
   return event;
 }
 

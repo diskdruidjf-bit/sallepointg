@@ -7,6 +7,9 @@ test('les fonctions Cloudflare normalisent les événements', async () => {
   const event = cleanEvent({ title:'Événement spécial', date:'2026-12-20T20:00', eventbriteId:'1998914026663', published:true });
   assert.equal(event.slug, 'evenement-special');
   assert.equal(eventFromRow({ ...event, published:1 }).published, true);
+  const external = cleanEvent({ title:'Impro', date:'2026-08-27T20:00', ticketType:'external', ticketUrl:'https://www.experiencesdore.com/product/test' });
+  assert.equal(external.ticketType,'external'); assert.equal(external.eventbriteId,'');
+  assert.throws(()=>cleanEvent({title:'Impro',date:'2026-08-27T20:00',ticketType:'external',ticketUrl:'javascript:alert(1)'}),/HTTPS/);
 });
 
 test('la comparaison Cloudflare des secrets est exacte', async () => {
