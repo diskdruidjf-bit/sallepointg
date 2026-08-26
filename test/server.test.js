@@ -24,7 +24,8 @@ async function fixture(t) {
 test('valide et normalise un événement', () => {
   const event = cleanEvent({ title:'Soirée d’été', date:'2026-08-30T19:30', eventbriteId:'1998914026663', published:true });
   assert.equal(event.slug, 'soiree-d-ete'); assert.equal(event.published, true);
-  assert.equal(cleanEvent({title:'Impro',date:'2026-08-27T20:00',ticketType:'external',ticketUrl:'https://www.experiencesdore.com/product/test'}).ticketType,'external');
+  const external=cleanEvent({title:'Impro',date:'2026-08-27T20:00',ticketType:'external',ticketUrl:'https://www.experiencesdore.com/product/test',organizer:'Expériences Doré',externalOrganizer:true});
+  assert.equal(external.ticketType,'external'); assert.equal(external.organizer,'Expériences Doré'); assert.equal(external.externalOrganizer,true);
   assert.throws(() => cleanEvent({ title:'Invalide', date:'x', eventbriteId:'abc' }));
 });
 
@@ -83,6 +84,7 @@ test('sert les pages publiques et privées', async t => {
   assert.match(home, /id="event-popup"/); assert.match(home, /home-event-popup\.js/); assert.match(home, /eb_widgets\.js/);
   const popupScript = await fs.readFile(path.resolve(__dirname, '../js/home-event-popup.js'), 'utf8');
   assert.match(popupScript, /jeudis-humour-popup\.png/); assert.match(popupScript, /external-ticket-trigger/);
-  assert.match(admin, /Billetterie externe/);
-  assert.match(await fs.readFile(path.resolve(__dirname, '../migrations/0002_ticketing_options.sql'), 'utf8'), /ticketType/);
+  assert.match(admin, /Billetterie externe/); assert.match(admin, /Événement organisé par un tiers/);
+  const migration=await fs.readFile(path.resolve(__dirname, '../migrations/0002_ticketing_options.sql'),'utf8'); assert.match(migration,/ticketType/); assert.match(migration,/externalOrganizer/);
+  assert.match(await fs.readFile(path.resolve(__dirname, '../js/event.js'),'utf8'), /agit uniquement comme lieu d’accueil/);
 });

@@ -1,2 +1,4 @@
 ALTER TABLE events ADD COLUMN ticketType TEXT NOT NULL DEFAULT 'eventbrite';
 ALTER TABLE events ADD COLUMN ticketUrl TEXT NOT NULL DEFAULT '';
+ALTER TABLE events ADD COLUMN organizer TEXT NOT NULL DEFAULT 'Salle Point G';
+ALTER TABLE events ADD COLUMN externalOrganizer INTEGER NOT NULL DEFAULT 0 CHECK (externalOrganizer IN (0, 1));
