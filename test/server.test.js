@@ -63,5 +63,7 @@ test('sert les pages publiques et privées', async t => {
   const { base } = await fixture(t);
   assert.match(await (await fetch(`${base}/evenements`)).text(), /Nos<br\/><em>événements/);
   assert.match(await (await fetch(`${base}/evenements/public`)).text(), /event-detail/);
-  assert.match(await (await fetch(`${base}/admin`)).text(), /Administration/);
+  const admin = await (await fetch(`${base}/admin`)).text();
+  assert.match(admin, /Administration/);
+  assert.match(admin, /Sélectionnez l’image, puis cliquez sur « Enregistrer »/);
 });
