@@ -8,6 +8,7 @@
 .event-popup-organizer{font-size:12px;color:#5c6470}
 .event-popup-actions{display:flex;align-items:center;flex-wrap:wrap;gap:18px}
 .event-popup-link{color:var(--gold);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.event-popup-secondary{background:transparent;border:1px solid var(--gold);color:var(--gold)!important}
 .event-popup-close{position:absolute;z-index:2;top:12px;right:14px;width:38px;height:38px;border:0;border-radius:50%;background:rgba(17,24,36,.82);color:#fff;font-size:25px;line-height:1;cursor:pointer}
 body:has(.event-popup[open]){overflow:hidden}
 @media(max-width:700px){.event-popup-grid{grid-template-columns:1fr;height:auto}.event-popup-image{height:auto;max-height:52svh;aspect-ratio:1054/1492}.event-popup-copy{padding:34px 24px 30px}.event-popup-copy h2{font-size:34px}}

@@ -85,6 +85,7 @@ test('sert les pages publiques et privées', async t => {
   assert.match(home, /mobile-menu-toggle/); assert.match(home, /mobile-nav\.js/);
   const popupScript = await fs.readFile(path.resolve(__dirname, '../js/home-event-popup.js'), 'utf8');
   assert.match(popupScript, /jeudis-humour-popup\.png/); assert.match(popupScript, /external-ticket-trigger/);
+  assert.match(popupScript, /api\/events\/soireehumourpointg011026/); assert.match(popupScript, /Nos autres événements/);
   assert.match(admin, /Billetterie externe/); assert.match(admin, /Événement organisé par un tiers/);
   const migration=await fs.readFile(path.resolve(__dirname, '../migrations/0002_ticketing_options.sql'),'utf8'); assert.match(migration,/ticketType/); assert.match(migration,/externalOrganizer/);
   assert.match(await fs.readFile(path.resolve(__dirname, '../js/event.js'),'utf8'), /agit uniquement comme lieu d’accueil/);
