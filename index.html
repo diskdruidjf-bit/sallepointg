@@ -13,12 +13,13 @@
     <link rel="stylesheet" href="section-logo.css" />
     <link rel="stylesheet" href="events.css" />
     <link rel="stylesheet" href="home-event-popup.css" />
+    <link rel="stylesheet" href="mobile-nav.css" />
   </head>
   <body>
     <header class="header">
       <nav class="nav wrap" aria-label="Navigation principale">
         <a class="brand" href="#accueil"><img src="assets/logo-salle-point-g.png" alt="Salle Point G · Réception privée" /><span>Salle<br /><b>Point G</b></span></a>
-        <div class="nav-links"><a href="#salle">La salle</a><a href="#services">Services</a><a href="/evenements">Événements</a><a href="#galerie">Galerie</a><a class="nav-cta" href="#contact">Réserver</a></div>
+        <button class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="main-navigation" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button><div class="nav-links" id="main-navigation"><a href="#salle">La salle</a><a href="#services">Services</a><a href="/evenements">Événements</a><a href="#galerie">Galerie</a><a class="nav-cta" href="#contact">Réserver</a></div>
       </nav>
     </header>
 
@@ -42,5 +43,6 @@
     <dialog class="event-popup" id="event-popup" aria-labelledby="event-popup-title"><button class="event-popup-close" type="button" aria-label="Fermer la promotion">×</button><div id="event-popup-content"></div></dialog>
     <script src="https://www.eventbrite.com/static/widgets/eb_widgets.js" defer></script>
     <script src="js/home-event-popup.js" defer></script>
+    <script src="js/mobile-nav.js" defer></script>
   </body>
 </html>
