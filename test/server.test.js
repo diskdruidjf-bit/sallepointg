@@ -80,5 +80,6 @@ test('sert les pages publiques et privées', async t => {
   assert.match(admin, /Administration/);
   const home = await (await fetch(`${base}/`)).text();
   assert.match(home, /id="event-popup"/); assert.match(home, /home-event-popup\.js/); assert.match(home, /eb_widgets\.js/);
-  assert.match(await fs.readFile(path.resolve(__dirname, '../js/home-event-popup.js'), 'utf8'), /jeudis-humour-popup\.png/);
+  const popupScript = await fs.readFile(path.resolve(__dirname, '../js/home-event-popup.js'), 'utf8');
+  assert.match(popupScript, /jeudis-humour-popup\.png/); assert.match(popupScript, /home-eventbrite-trigger'\)\.addEventListener\('click',closeEventPopup\)/);
 });

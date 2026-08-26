@@ -14,6 +14,7 @@ if(!sessionStorage.getItem('spg-event-popup-closed'))fetch('/api/events').then(r
   const href=`/evenements/${encodeURIComponent(event.slug)}`;
   popupContent.innerHTML=`<div class="event-popup-grid"><img class="event-popup-image" src="/assets/jeudis-humour-popup.png" alt="Affiche des Jeudis humour à la Salle Point G"/><div class="event-popup-copy"><p class="kicker dark">Prochain événement · ${popupEscape(popupDate(event.date))}</p><h2 id="event-popup-title">${popupEscape(event.title)}</h2><p>${popupEscape(event.summary)}</p><div class="event-popup-actions"><button class="button" id="home-eventbrite-trigger" type="button">Acheter des billets</button><a class="event-popup-link" href="${href}">Voir la fiche →</a></div></div></div>`;
   popup.showModal();
+  document.querySelector('#home-eventbrite-trigger').addEventListener('click',closeEventPopup);
   const initialize=()=>{if(!window.EBWidgets)return setTimeout(initialize,100);window.EBWidgets.createWidget({widgetType:'checkout',eventId:event.eventbriteId,modal:true,modalTriggerElementId:'home-eventbrite-trigger',onOrderComplete:()=>{}});};
   initialize();
 }).catch(()=>{});
