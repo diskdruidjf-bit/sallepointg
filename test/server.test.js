@@ -66,4 +66,5 @@ test('sert les pages publiques et privées', async t => {
   const admin = await (await fetch(`${base}/admin`)).text();
   assert.match(admin, /Administration/);
   assert.match(admin, /Sélectionnez l’image, puis cliquez sur « Enregistrer »/);
+  assert.match(await fs.readFile(path.resolve(__dirname, '../js/admin.js'), 'utf8'), /imageFile\.required = editor\.elements\.image\.value/);
 });
