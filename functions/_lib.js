@@ -31,6 +31,31 @@ export async function requestBody(request) {
   return request.json();
 }
 
+export async function eventRequest(request) {
+  const contentType = request.headers.get('content-type') || '';
+  if (!contentType.toLowerCase().startsWith('multipart/form-data')) return { input: await requestBody(request), image: null };
+  const length = Number(request.headers.get('content-length') || 0);
+  if (length > 9 * 1024 * 1024) throw new Error('L’image dépasse la limite de 8 Mo.');
+  const form = await request.formData();
+  const serialized = form.get('event');
+  if (typeof serialized !== 'string') throw new Error('Données d’événement manquantes.');
+  let input;
+  try { input = JSON.parse(serialized); } catch { throw new Error('Données d’événement invalides.'); }
+  const candidate = form.get('image');
+  const image = candidate && typeof candidate === 'object' && typeof candidate.arrayBuffer === 'function' && candidate.size > 0 ? candidate : null;
+  return { input, image };
+}
+
+export async function storeEventImage(env, file) {
+  if (!env.EVENT_IMAGES) throw new Error('Le stockage des images n’est pas configuré.');
+  if (file.size > 8 * 1024 * 1024) throw new Error('L’image dépasse la limite de 8 Mo.');
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const info = imageUploadInfo(bytes, file.type);
+  const key = `${crypto.randomUUID()}.${info.extension}`;
+  await env.EVENT_IMAGES.put(key, bytes, { httpMetadata: { contentType: info.contentType } });
+  return `/media/${key}`;
+}
+
 export function tokenFromRequest(request) {
   return /(?:^|;\s*)spg_session=([^;]+)/.exec(request.headers.get('cookie') || '')?.[1] || '';
 }

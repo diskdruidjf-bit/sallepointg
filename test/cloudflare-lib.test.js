@@ -22,3 +22,16 @@ test('valide le contenu réel des images téléversées', async () => {
   assert.throws(() => imageUploadInfo(Uint8Array.from([1, 2, 3]), 'image/jpeg'), /image JPEG/);
   assert.throws(() => imageUploadInfo(jpeg, 'text/html'), /image JPEG/);
 });
+
+test('reçoit et stocke un événement et son image dans une même requête', async () => {
+  const { eventRequest, storeEventImage } = await import('../functions/_lib.js');
+  const form = new FormData();
+  form.append('event', JSON.stringify({ title:'Avec image', date:'2026-12-20T20:00', eventbriteId:'1998914026663' }));
+  form.append('image', new File([Uint8Array.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a])], 'promo.png', { type:'image/png' }));
+  const parsed = await eventRequest(new Request('https://example.test/api/events', { method:'POST', body:form }));
+  assert.equal(parsed.input.title, 'Avec image');
+  let stored;
+  const url = await storeEventImage({ EVENT_IMAGES:{ put:async (...args) => { stored=args; } } }, parsed.image);
+  assert.match(url, /^\/media\/[0-9a-f-]{36}\.png$/);
+  assert.equal(stored[2].httpMetadata.contentType, 'image/png');
+});

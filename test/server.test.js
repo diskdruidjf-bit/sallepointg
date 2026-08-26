@@ -56,6 +56,13 @@ test('l’administration exige une session et permet le CRUD', async t => {
   assert.equal(privateEvents.length, 3);
   const updated = await fetch(`${base}/api/events/${created.id}`, { method:'PUT', headers, body:JSON.stringify({...created, title:'Nouveau titre', published:true}) });
   assert.equal(updated.status, 200); assert.equal((await updated.json()).title, 'Nouveau titre');
+  const payload = new FormData();
+  payload.append('event', JSON.stringify({...created, title:'Avec image PNG', published:true}));
+  payload.append('image', new File([Uint8Array.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a])], 'promo.png', {type:'image/png'}));
+  const unified = await fetch(`${base}/api/events/${created.id}`, { method:'PUT', headers:{cookie,'x-csrf-token':csrf}, body:payload });
+  assert.equal(unified.status, 200); const unifiedEvent = await unified.json();
+  assert.equal(unifiedEvent.title, 'Avec image PNG'); assert.match(unifiedEvent.image, /^\/media\/[0-9a-f-]{36}\.png$/);
+  assert.equal((await fs.stat(path.join(uploadDir, path.basename(unifiedEvent.image)))).size, 8);
   assert.equal((await fetch(`${base}/api/events/${created.id}`, { method:'DELETE', headers })).status, 200);
 });
 

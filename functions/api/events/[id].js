@@ -1,4 +1,4 @@
-import { cleanEvent, eventFromRow, getSession, json, logError, requestBody, requireAdmin } from '../../_lib.js';
+import { cleanEvent, eventFromRow, eventRequest, getSession, json, logError, requireAdmin, storeEventImage } from '../../_lib.js';
 
 export async function onRequestGet(context) {
   try {
@@ -14,9 +14,11 @@ export async function onRequestPut(context) {
     const auth = await requireAdmin(context); if (auth.error) return auth.error;
     const id = String(context.params.id); const current = eventFromRow(await context.env.DB.prepare('SELECT * FROM events WHERE id = ?').bind(id).first());
     if (!current) return json({ error: 'Événement introuvable.' }, 404);
-    const event = cleanEvent(await requestBody(context.request), current);
+    const { input, image } = await eventRequest(context.request);
+    const event = cleanEvent(input, current);
     const duplicate = await context.env.DB.prepare('SELECT id FROM events WHERE slug = ? AND id != ?').bind(event.slug, id).first();
     if (duplicate) return json({ error: 'Cette adresse d’événement existe déjà.' }, 409);
+    if (image) event.image = await storeEventImage(context.env, image);
     await context.env.DB.prepare('UPDATE events SET slug=?, title=?, summary=?, description=?, date=?, location=?, image=?, eventbriteId=?, published=?, updated_at=CURRENT_TIMESTAMP WHERE id=?').bind(event.slug, event.title, event.summary, event.description, event.date, event.location, event.image, event.eventbriteId, event.published ? 1 : 0, id).run();
     return json(event);
   } catch (error) { logError(error, context.request); return json({ error: error instanceof Error ? error.message : 'Requête invalide.' }, 400); }

@@ -71,6 +71,28 @@ function createApp(options = {}) {
     for await (const chunk of req) { size += chunk.length; if (size > maxSize) throw new Error('L’image dépasse la limite de 8 Mo.'); chunks.push(chunk); }
     return Buffer.concat(chunks);
   }
+  async function eventBody(req, existing = {}) {
+    const contentType = String(req.headers['content-type'] || '');
+    if (!contentType.toLowerCase().startsWith('multipart/form-data')) return cleanEvent(await body(req), existing);
+    const raw = await binaryBody(req, 9 * 1024 * 1024);
+    const form = await new Request('http://localhost/event', { method:'POST', headers:{ 'content-type':contentType }, body:raw }).formData();
+    const serialized = form.get('event');
+    if (typeof serialized !== 'string') throw new Error('Données d’événement manquantes.');
+    let input;
+    try { input = JSON.parse(serialized); } catch { throw new Error('Données d’événement invalides.'); }
+    const event = cleanEvent(input, existing);
+    const image = form.get('image');
+    if (image && typeof image === 'object' && image.size > 0) {
+      if (image.size > 8 * 1024 * 1024) throw new Error('L’image dépasse la limite de 8 Mo.');
+      const bytes = Buffer.from(await image.arrayBuffer());
+      const { extension } = imageUploadInfo(bytes, image.type);
+      const key = `${crypto.randomUUID()}.${extension}`;
+      await fs.mkdir(uploadDir, { recursive:true });
+      await fs.writeFile(path.join(uploadDir, key), bytes);
+      event.image = `/media/${key}`;
+    }
+    return event;
+  }
   async function serve(res, file) {
     const resolved = path.resolve(root, file.replace(/^\/+/, ''));
     if (!resolved.startsWith(`${path.resolve(root)}${path.sep}`)) return json(res, 403, { error: 'Accès refusé.' });
@@ -124,7 +146,7 @@ function createApp(options = {}) {
       if (url.pathname === '/api/events' && req.method === 'POST') {
         const active = session(req);
         if (!active || req.headers['x-csrf-token'] !== active.csrf) return json(res, 403, { error: 'Accès refusé.' });
-        const events = await readEvents(); const event = cleanEvent(await body(req));
+        const events = await readEvents(); const event = await eventBody(req);
         if (events.some(item => item.slug === event.slug)) return json(res, 409, { error: 'Cette adresse d’événement existe déjà.' });
         events.push(event); await writeEvents(events); return json(res, 201, event);
       }
@@ -135,7 +157,7 @@ function createApp(options = {}) {
         const index = events.findIndex(item => item.id === id);
         if (index < 0) return json(res, 404, { error: 'Événement introuvable.' });
         if (req.method === 'DELETE') { events.splice(index, 1); await writeEvents(events); return json(res, 200, { ok: true }); }
-        const event = cleanEvent(await body(req), events[index]);
+        const event = await eventBody(req, events[index]);
         if (events.some((item, i) => i !== index && item.slug === event.slug)) return json(res, 409, { error: 'Cette adresse d’événement existe déjà.' });
         events[index] = event; await writeEvents(events); return json(res, 200, event);
       }

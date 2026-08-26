@@ -1,4 +1,5 @@
 .event-card img{height:auto;aspect-ratio:2/1;object-fit:cover}
+.page-hero{background:linear-gradient(90deg,rgba(11,17,27,.9),rgba(11,17,27,.58)),url('/assets/point-g-salle.jpg') center/cover no-repeat}
 .event-hero{width:100%;min-height:0;max-height:none;aspect-ratio:2/1;background-position:center;background-size:cover}
 .image-preview{overflow:hidden;background:#eef0f1;aspect-ratio:2/1}
 .image-preview img{display:block;width:100%;height:100%;object-fit:cover}

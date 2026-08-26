@@ -1,4 +1,4 @@
-import { cleanEvent, eventFromRow, getSession, json, logError, requestBody, requireAdmin } from '../../_lib.js';
+import { cleanEvent, eventFromRow, eventRequest, getSession, json, logError, requireAdmin, storeEventImage } from '../../_lib.js';
 
 export async function onRequestGet(context) {
   try {
@@ -12,9 +12,11 @@ export async function onRequestGet(context) {
 export async function onRequestPost(context) {
   try {
     const auth = await requireAdmin(context); if (auth.error) return auth.error;
-    const event = cleanEvent(await requestBody(context.request));
+    const { input, image } = await eventRequest(context.request);
+    const event = cleanEvent(input);
     const duplicate = await context.env.DB.prepare('SELECT id FROM events WHERE slug = ?').bind(event.slug).first();
     if (duplicate) return json({ error: 'Cette adresse d’événement existe déjà.' }, 409);
+    if (image) event.image = await storeEventImage(context.env, image);
     await context.env.DB.prepare('INSERT INTO events (id, slug, title, summary, description, date, location, image, eventbriteId, published) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(event.id, event.slug, event.title, event.summary, event.description, event.date, event.location, event.image, event.eventbriteId, event.published ? 1 : 0).run();
     return json(event, 201);
   } catch (error) { logError(error, context.request); return json({ error: error instanceof Error ? error.message : 'Requête invalide.' }, 400); }
