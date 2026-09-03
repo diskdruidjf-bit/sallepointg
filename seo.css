@@ -18,3 +18,8 @@
   line-height: 1.04;
   letter-spacing: -2px;
 }
+
+.seo-context-link {
+  color: inherit;
+  text-decoration: none;
+}

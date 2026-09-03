@@ -10,5 +10,9 @@
   Cache-Control: no-cache, no-store, must-revalidate
 /evenements.html
   Cache-Control: no-cache, no-store, must-revalidate
+/location-salle-saint-jerome
+  Cache-Control: no-cache, no-store, must-revalidate
+/location-salle-saint-jerome.html
+  Cache-Control: no-cache, no-store, must-revalidate
 /admin*
   X-Robots-Tag: noindex, nofollow

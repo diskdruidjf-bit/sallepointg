@@ -11,7 +11,8 @@ test('le sitemap contient uniquement les URL publiques canoniques', async () => 
   assert.match(sitemap, /<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
   assert.deepEqual([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(match => match[1]), [
     'https://sallepointg.ca/',
-    'https://sallepointg.ca/evenements'
+    'https://sallepointg.ca/evenements',
+    'https://sallepointg.ca/location-salle-saint-jerome'
   ]);
 });
 
@@ -25,13 +26,13 @@ test('robots.txt autorise le site, protège l’administration et déclare le si
 
 test('les pages SEO principales doivent être revalidées par le navigateur', async () => {
   const headers = await read('_headers');
-  for (const route of ['/', '/index.html', '/evenements', '/evenements.html']) {
+  for (const route of ['/', '/index.html', '/evenements', '/evenements.html', '/location-salle-saint-jerome', '/location-salle-saint-jerome.html']) {
     assert.ok(headers.includes(`${route}\n  Cache-Control: no-cache, no-store, must-revalidate`));
   }
 });
 
 test('les pages publiques principales ont les balises SEO attendues', async () => {
-  for (const [file, canonical] of [['index.html', 'https://sallepointg.ca/'], ['evenements.html', 'https://sallepointg.ca/evenements']]) {
+  for (const [file, canonical] of [['index.html', 'https://sallepointg.ca/'], ['evenements.html', 'https://sallepointg.ca/evenements'], ['location-salle-saint-jerome.html', 'https://sallepointg.ca/location-salle-saint-jerome']]) {
     const html = await read(file);
     assert.match(html, /<html lang="fr-CA">/);
     assert.match(html, /<title>[^<]+<\/title>/);
@@ -42,6 +43,18 @@ test('les pages publiques principales ont les balises SEO attendues', async () =
     assert.match(html, /property="og:image"/);
     assert.match(html, /name="twitter:card" content="summary_large_image"/);
   }
+});
+
+test('la page locale présente une structure SEO complète et des liens depuis l’accueil', async () => {
+  const page = await read('location-salle-saint-jerome.html');
+  assert.match(page, /<h1>Location de salle privée<br \/><em>à Saint-Jérôme\.<\/em><\/h1>/);
+  assert.match(page, /<h2>[^<]+<br \/><em>[^<]+<\/em><\/h2>/);
+  assert.match(page, /Questions fréquentes/);
+  assert.match(page, /maximumAttendeeCapacity/);
+  assert.match(page, /"@type":"FAQPage"/);
+  assert.match(page, /href="\/#contact"/);
+  const home = await read('index.html');
+  assert.ok((home.match(/href="\/location-salle-saint-jerome"/g) || []).length >= 2);
 });
 
 test('la page d’accueil cible la location de salle sans changer le slogan visuel', async () => {

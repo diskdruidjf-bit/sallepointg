@@ -76,6 +76,9 @@ test('sert les pages publiques et privées', async t => {
   assert.equal(oldEventsUrl.status, 301);
   assert.equal(oldEventsUrl.headers.get('location'), '/evenements');
   assert.match(await (await fetch(`${base}/evenements`)).text(), /Nos<br\/><em>événements/);
+  const locationPage = await (await fetch(`${base}/location-salle-saint-jerome`)).text();
+  assert.match(locationPage, /Location de salle privée/);
+  assert.match(locationPage, /Questions fréquentes/);
   assert.match(await (await fetch(`${base}/evenements/public`)).text(), /event-detail/);
   const admin = await (await fetch(`${base}/admin`)).text();
   assert.match(admin, /Administration/);
