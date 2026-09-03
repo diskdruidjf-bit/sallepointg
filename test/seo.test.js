@@ -23,6 +23,13 @@ test('robots.txt autorise le site, protège l’administration et déclare le si
   assert.match(robots, /^Sitemap: https:\/\/sallepointg\.ca\/sitemap\.xml$/m);
 });
 
+test('les pages SEO principales doivent être revalidées par le navigateur', async () => {
+  const headers = await read('_headers');
+  for (const route of ['/', '/index.html', '/evenements', '/evenements.html']) {
+    assert.ok(headers.includes(`${route}\n  Cache-Control: no-cache, no-store, must-revalidate`));
+  }
+});
+
 test('les pages publiques principales ont les balises SEO attendues', async () => {
   for (const [file, canonical] of [['index.html', 'https://sallepointg.ca/'], ['evenements.html', 'https://sallepointg.ca/evenements']]) {
     const html = await read(file);

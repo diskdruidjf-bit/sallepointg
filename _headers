@@ -2,5 +2,13 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+/evenements
+  Cache-Control: no-cache, no-store, must-revalidate
+/evenements.html
+  Cache-Control: no-cache, no-store, must-revalidate
 /admin*
   X-Robots-Tag: noindex, nofollow

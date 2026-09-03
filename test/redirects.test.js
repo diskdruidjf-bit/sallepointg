@@ -10,10 +10,17 @@ test('Cloudflare Pages redirige seulement les anciennes URL anglaises', async ()
     .filter(Boolean);
 
   assert.deepEqual(redirects, [
-    '/events /evenements 301',
     '/events/ /evenements 301',
     '/events.html /evenements 301',
   ]);
+});
+
+test('la route Pages /events redirige explicitement vers l’URL canonique', async () => {
+  const { onRequest } = await import('../functions/events.js');
+  const response = onRequest({ request:new Request('https://sallepointg.ca/events') });
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get('location'), '/evenements');
+  assert.equal(response.headers.get('cache-control'), 'no-store');
 });
 
 test('la route dynamique conserve le slug tout en servant la fiche statique', async () => {
