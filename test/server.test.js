@@ -72,6 +72,9 @@ test('l’administration exige une session et permet le CRUD', async t => {
 
 test('sert les pages publiques et privées', async t => {
   const { base } = await fixture(t);
+  const oldEventsUrl = await fetch(`${base}/events`, { redirect:'manual' });
+  assert.equal(oldEventsUrl.status, 301);
+  assert.equal(oldEventsUrl.headers.get('location'), '/evenements');
   assert.match(await (await fetch(`${base}/evenements`)).text(), /Nos<br\/><em>événements/);
   assert.match(await (await fetch(`${base}/evenements/public`)).text(), /event-detail/);
   const admin = await (await fetch(`${base}/admin`)).text();

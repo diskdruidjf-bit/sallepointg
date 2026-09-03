@@ -177,6 +177,10 @@ function createApp(options = {}) {
         if (event.image === '/assets/point-g-salle.jpg') return json(res, 400, { error: 'Sélectionnez une image pour cet événement.' });
         events[index] = event; await writeEvents(events); return json(res, 200, event);
       }
+      if (url.pathname === '/events' || url.pathname === '/events/' || url.pathname === '/events.html') {
+        res.writeHead(301, { location: '/evenements' });
+        return res.end();
+      }
       if (url.pathname === '/evenements' || url.pathname === '/evenements/') return serve(res, 'events.html');
       if (url.pathname.startsWith('/evenements/')) return serve(res, 'event.html');
       if (url.pathname === '/admin' || url.pathname === '/admin/') return serve(res, 'admin.html');

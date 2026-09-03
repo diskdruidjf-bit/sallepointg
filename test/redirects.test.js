@@ -10,6 +10,9 @@ test('Cloudflare Pages maps the events list without redirecting event details', 
     .filter(Boolean);
 
   assert.deepEqual(redirects, [
+    '/events /evenements 301',
+    '/events/ /evenements 301',
+    '/events.html /evenements 301',
     '/evenements /events.html 200',
     '/evenements/ /events.html 200',
   ]);
