@@ -181,7 +181,7 @@ function createApp(options = {}) {
         res.writeHead(301, { location: '/evenements' });
         return res.end();
       }
-      if (url.pathname === '/evenements' || url.pathname === '/evenements/') return serve(res, 'events.html');
+      if (url.pathname === '/evenements' || url.pathname === '/evenements/') return serve(res, 'evenements.html');
       if (url.pathname.startsWith('/evenements/')) return serve(res, 'event.html');
       if (url.pathname === '/admin' || url.pathname === '/admin/') return serve(res, 'admin.html');
       return serve(res, url.pathname === '/' ? 'index.html' : url.pathname);

@@ -3,7 +3,7 @@ const { readFile } = require('node:fs/promises');
 const path = require('node:path');
 const test = require('node:test');
 
-test('Cloudflare Pages maps the events list without redirecting event details', async () => {
+test('Cloudflare Pages redirige seulement les anciennes URL anglaises', async () => {
   const redirects = (await readFile(path.join(__dirname, '..', '_redirects'), 'utf8'))
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -13,8 +13,6 @@ test('Cloudflare Pages maps the events list without redirecting event details', 
     '/events /evenements 301',
     '/events/ /evenements 301',
     '/events.html /evenements 301',
-    '/evenements /events.html 200',
-    '/evenements/ /events.html 200',
   ]);
 });
 

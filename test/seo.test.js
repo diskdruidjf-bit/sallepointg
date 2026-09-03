@@ -24,7 +24,7 @@ test('robots.txt autorise le site, protège l’administration et déclare le si
 });
 
 test('les pages publiques principales ont les balises SEO attendues', async () => {
-  for (const [file, canonical] of [['index.html', 'https://sallepointg.ca/'], ['events.html', 'https://sallepointg.ca/evenements']]) {
+  for (const [file, canonical] of [['index.html', 'https://sallepointg.ca/'], ['evenements.html', 'https://sallepointg.ca/evenements']]) {
     const html = await read(file);
     assert.match(html, /<html lang="fr-CA">/);
     assert.match(html, /<title>[^<]+<\/title>/);
