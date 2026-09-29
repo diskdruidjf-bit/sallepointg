@@ -74,3 +74,9 @@ test('génère et aplatit le PDF final signé', async () => {
   const result=await buildSignedContract({ASSETS:{fetch:async()=>new Response(template)}},new Request('https://example.test'),contract,signers);
   assert.ok(result.byteLength>30000); assert.equal(String.fromCharCode(...result.slice(0,4)),'%PDF');
 });
+
+test('reproduit les signatures des deux parties dans l’acceptation de l’annexe', async () => {
+  const { signatureFieldsForRole }=await import('../functions/_contract_pdf.js');
+  assert.deepEqual(signatureFieldsForRole('tenant'),['signature_locataire','annexe_sign_locataire']);
+  assert.deepEqual(signatureFieldsForRole('locator'),['signature_locateur','annexe_sign_locateur']);
+});

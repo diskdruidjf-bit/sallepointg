@@ -2,6 +2,9 @@ import { PDFDocument, StandardFonts } from 'pdf-lib';
 
 const dateFr=value=>{const match=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(value||''));return match?`${match[3]}/${match[2]}/${match[1]}`:String(value||'');};
 const payment=value=>({guests:'Chaque invité',tenant:'Locataire',other:'Autre',limit:'Locataire — plafond',quantity:'Locataire — quantité précise'}[value]||'');
+export const signatureFieldsForRole=role=>role==='tenant'
+  ? ['signature_locataire','annexe_sign_locataire']
+  : ['signature_locateur','annexe_sign_locateur'];
 export async function buildSignedContract(env,request,contract,signers){
   const template=await env.ASSETS.fetch(new URL('/assets/contrat-location-template.pdf',request.url)); if(!template.ok)throw new Error('Modèle PDF introuvable.');
   const pdf=await PDFDocument.load(await template.arrayBuffer()); const form=pdf.getForm(); const font=await pdf.embedFont(StandardFonts.Helvetica);
@@ -10,7 +13,7 @@ export async function buildSignedContract(env,request,contract,signers){
   const checks={mineurs_presents:contract.minorsPresent,repas_invites:contract.mealPayment==='guests',repas_locataire:contract.mealPayment==='tenant',repas_autre:contract.mealPayment==='other',boissons_invites:contract.beveragePayment==='guests',boissons_locataire:contract.beveragePayment==='tenant',boissons_plafond_case:contract.beveragePayment==='limit',boissons_quantite_case:contract.beveragePayment==='quantity'};
   for(const [name,checked] of Object.entries(checks)){try{if(checked)form.getCheckBox(name).check();else form.getCheckBox(name).uncheck();}catch{}}
   const signatureOverlays=[];
-  for(const signer of signers){const fieldName=signer.role==='tenant'?'signature_locataire':'signature_locateur';const timestamp=new Date(`${signer.signed_at.replace(' ','T')}Z`).toLocaleString('fr-CA',{timeZone:'America/Toronto',dateStyle:'short',timeStyle:'medium'});try{const field=form.getTextField(fieldName);const widget=field.acroField.getWidgets()[0];const pageIndex=pdf.getPages().findIndex(page=>String(page.ref)===String(widget.P()));field.setText('');signatureOverlays.push({signer,timestamp,rect:widget.getRectangle(),pageIndex});}catch{}}
+  for(const signer of signers){const timestamp=new Date(`${signer.signed_at.replace(' ','T')}Z`).toLocaleString('fr-CA',{timeZone:'America/Toronto',dateStyle:'short',timeStyle:'medium'});for(const fieldName of signatureFieldsForRole(signer.role)){try{const field=form.getTextField(fieldName);const widget=field.acroField.getWidgets()[0];const pageIndex=pdf.getPages().findIndex(page=>String(page.ref)===String(widget.P()));field.setText('');signatureOverlays.push({signer,timestamp,rect:widget.getRectangle(),pageIndex});}catch{}}}
   form.updateFieldAppearances(font); form.flatten();
   for(const overlay of signatureOverlays){if(overlay.pageIndex<0)continue;const page=pdf.getPages()[overlay.pageIndex];const {x,y,width,height}=overlay.rect;try{const stored=overlay.signer.signature_key&&await env.CONTRACT_FILES.get(overlay.signer.signature_key);if(stored){const image=await pdf.embedPng(await stored.arrayBuffer());const imageHeight=Math.max(6,height-7);const scale=Math.min((width-4)/image.width,imageHeight/image.height);page.drawImage(image,{x:x+2,y:y+6,width:image.width*scale,height:image.height*scale});}}catch{}page.drawText(`Signé par ${overlay.signer.name} · ${overlay.timestamp}`,{x:x+2,y:y+1,size:4.7,font,maxWidth:width-4});}
   return pdf.save();
