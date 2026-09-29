@@ -81,6 +81,8 @@ test('sert les pages publiques et privées', async t => {
   assert.match(locationPage, /Questions fréquentes/);
   const contractPage = await (await fetch(`${base}/contrat-location`)).text();
   assert.match(contractPage, /Contrat de/); assert.match(contractPage, /Tolérance zéro/); assert.match(contractPage, /sept jours avant/);
+  const signaturePage = await (await fetch(`${base}/signature?token=test`)).text();
+  assert.match(signaturePage, /Signature électronique/); assert.match(signaturePage, /adresse IP/); assert.match(signaturePage, /signature\.js/);
   assert.match(await (await fetch(`${base}/evenements/public`)).text(), /event-detail/);
   const admin = await (await fetch(`${base}/admin`)).text();
   assert.match(admin, /Administration/);

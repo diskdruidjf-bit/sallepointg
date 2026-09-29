@@ -29,13 +29,13 @@ Appliquer ensuite `migrations/0001_initial.sql` à la base D1. Le serveur `serve
 
 ## Contrats de location et signature électronique
 
-Le formulaire public se trouve à `/contrat-location`. Les demandes sont conservées dans D1 et apparaissent dans l’onglet « Contrats » de `/admin`. Appliquer aussi `migrations/0002_ticketing_options.sql` et `migrations/0003_contracts.sql`.
+Le formulaire public se trouve à `/contrat-location`. Les demandes sont conservées dans D1 et apparaissent dans l’onglet « Contrats » de `/admin`. Appliquer aussi les migrations `0002_ticketing_options.sql`, `0003_contracts.sql` et `0004_native_signatures.sql`.
 
-La signature utilise un modèle Dropbox Sign comportant deux rôles, exactement nommés `Locataire` et `Locateur`. Le modèle doit contenir les champs de fusion décrits dans `docs/dropbox-sign-template.md`. Configurer dans Cloudflare Pages :
+La signature est gérée par le site. Chaque partie reçoit un lien personnel valable 14 jours, consulte le contrat, dessine sa signature et confirme son consentement. Le système conserve l’horodatage, l’adresse IP, l’agent utilisateur, l’empreinte du contrat et un journal de preuve. Une fois les deux signatures reçues, le PDF final est conservé dans R2 et envoyé aux parties.
 
-- les secrets `DROPBOX_SIGN_API_KEY` et `DROPBOX_SIGN_TEMPLATE_ID`;
-- la variable facultative `DROPBOX_SIGN_TEST_MODE=true` pendant les essais;
-- le bucket R2 privé `sallepointg-contract-files` lié sous `CONTRACT_FILES`;
-- l’URL de rappel Dropbox Sign `https://sallepointg.ca/api/signatures/dropbox-sign`.
+Configurer dans Cloudflare Pages :
 
-Dropbox Sign envoie les invitations et la copie finale aux signataires. Le rappel conserve également le PDF final dans le bucket privé pour son téléchargement depuis l’administration.
+- le secret `RESEND_API_KEY` pour l’envoi transactionnel;
+- `SIGNATURE_FROM_EMAIL`, par exemple `Salle Point G <contrats@sallepointg.ca>`;
+- `PUBLIC_SITE_URL=https://sallepointg.ca`;
+- le bucket R2 privé `sallepointg-contract-files` lié sous `CONTRACT_FILES`.

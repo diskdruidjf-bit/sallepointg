@@ -185,6 +185,7 @@ function createApp(options = {}) {
       if (url.pathname.startsWith('/evenements/')) return serve(res, 'event.html');
       if (url.pathname === '/location-salle-saint-jerome' || url.pathname === '/location-salle-saint-jerome/') return serve(res, 'location-salle-saint-jerome.html');
       if (url.pathname === '/contrat-location' || url.pathname === '/contrat-location/') return serve(res, 'contrat-location.html');
+      if (url.pathname === '/signature' || url.pathname === '/signature/') return serve(res, 'signature.html');
       if (url.pathname === '/admin' || url.pathname === '/admin/') return serve(res, 'admin.html');
       return serve(res, url.pathname === '/' ? 'index.html' : url.pathname);
     } catch (error) { json(res, 400, { error: error.message || 'Requête invalide.' }); }

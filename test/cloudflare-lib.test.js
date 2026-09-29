@@ -57,3 +57,20 @@ test('valide le contrat et calcule la date limite des repas côté serveur', asy
   assert.equal(contract.mealDeadline,'2026-11-24'); assert.equal(contract.status,'submitted');
   assert.throws(()=>cleanContract({...contract,accepted:false}),/confirmer/);
 });
+
+test('produit des empreintes SHA-256 stables pour les liens et les preuves', async () => {
+  const { sha256 } = await import('../functions/_lib.js');
+  assert.equal(await sha256('Salle Point G'), await sha256('Salle Point G'));
+  assert.notEqual(await sha256('Salle Point G'), await sha256('Autre'));
+  assert.match(await sha256('Salle Point G'), /^[a-f0-9]{64}$/);
+});
+
+test('génère et aplatit le PDF final signé', async () => {
+  const fs=require('node:fs/promises'); const path=require('node:path');
+  const { buildSignedContract }=await import('../functions/_contract_pdf.js');
+  const template=await fs.readFile(path.resolve(__dirname,'../assets/contrat-location-template.pdf'));
+  const contract={tenantName:'Client Test',tenantAddress:'1, rue Test',tenantEmail:'client@example.com',tenantPhone:'450 555-0101',tenantNeq:'',eventDate:'2026-12-01',eventType:'Réception privée',minorsPresent:false,minorsCount:'',accessTime:'17:00',guestTime:'18:00',roomPrice:'500 $',roomTaxes:'',deposit:'',roomBalance:'',securityDeposit:'',mealPlan:'Menu test',mealCount:'20',mealDeadline:'2026-11-24',mealPayment:'guests',mealAllocation:'',beveragePayment:'guests',beverageTerms:'',otherPurchases:'',onsiteContact:'Client Test',onsitePhone:'450 555-0101',locatorName:'Locateur Test',locatorEmail:'location@example.com'};
+  const signers=[{role:'tenant',name:'Client Test',signed_at:'2026-09-28 20:00:00'},{role:'locator',name:'Locateur Test',signed_at:'2026-09-28 20:01:00'}];
+  const result=await buildSignedContract({ASSETS:{fetch:async()=>new Response(template)}},new Request('https://example.test'),contract,signers);
+  assert.ok(result.byteLength>30000); assert.equal(String.fromCharCode(...result.slice(0,4)),'%PDF');
+});

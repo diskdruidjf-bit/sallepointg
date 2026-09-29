@@ -19,3 +19,6 @@
 /contrat-location*
   Cache-Control: no-cache, no-store, must-revalidate
   X-Robots-Tag: noindex, follow
+/signature*
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: noindex, nofollow

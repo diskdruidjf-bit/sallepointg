@@ -104,6 +104,21 @@ export function randomToken(bytes = 32) {
   return Array.from(values, value => value.toString(16).padStart(2, '0')).join('');
 }
 
+export async function sha256(value) {
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(value)));
+  return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+}
+
+export function clientIp(request) { return request.headers.get('cf-connecting-ip') || ''; }
+export function escapeHtml(value) { return String(value??'').replace(/[&<>"']/g,character=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character])); }
+
+export async function sendEmail(env, { to, subject, html, attachments = [] }) {
+  if (!env.RESEND_API_KEY || !env.SIGNATURE_FROM_EMAIL) throw new Error('Configurez RESEND_API_KEY et SIGNATURE_FROM_EMAIL dans Cloudflare.');
+  const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{authorization:`Bearer ${env.RESEND_API_KEY}`,'content-type':'application/json'},body:JSON.stringify({from:env.SIGNATURE_FROM_EMAIL,to:Array.isArray(to)?to:[to],subject,html,attachments})});
+  if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.message||'Le courriel de signature n’a pas pu être envoyé.');}
+  return response.json();
+}
+
 export function imageUploadInfo(bytes, contentType) {
   const type = String(contentType || '').toLowerCase().split(';')[0].trim();
   const signatures = {
@@ -171,4 +186,9 @@ export const CONTRACT_COLUMNS = ['id','status','tenant_name','tenant_address','t
 
 export function contractValues(contract) {
   return [contract.id,contract.status,contract.tenantName,contract.tenantAddress,contract.tenantEmail,contract.tenantPhone,contract.tenantNeq,contract.eventDate,contract.eventType,contract.minorsPresent?1:0,contract.minorsCount,contract.accessTime,contract.guestTime,contract.roomPrice,contract.roomTaxes,contract.deposit,contract.roomBalance,contract.securityDeposit,contract.mealPlan,contract.mealCount,contract.mealDeadline,contract.mealPayment,contract.mealAllocation,contract.beveragePayment,contract.beverageTerms,contract.otherPurchases,contract.onsiteContact,contract.onsitePhone,contract.notes,contract.locatorName,contract.locatorEmail,contract.accepted?1:0];
+}
+
+export function contractSigningSnapshot(contract) {
+  const { status, signatureRequestId, signedFileKey, submittedAt, updatedAt, sentAt, signedAt, ...terms }=contract;
+  return { template:'contrat-location-template-v1', ...terms };
 }
