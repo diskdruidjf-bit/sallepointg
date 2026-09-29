@@ -83,6 +83,9 @@ test('sert les pages publiques et privées', async t => {
   assert.match(contractPage, /Contrat de/); assert.match(contractPage, /Tolérance zéro/); assert.match(contractPage, /sept jours avant/);
   const signaturePage = await (await fetch(`${base}/signature?token=test`)).text();
   assert.match(signaturePage, /Signature électronique/); assert.match(signaturePage, /adresse IP/); assert.match(signaturePage, /signature\.js/);
+  assert.doesNotMatch(signaturePage, /contrat-location-template\.pdf/);
+  const signatureScript = await fs.readFile(path.resolve(__dirname, '../js/signature.js'), 'utf8');
+  assert.match(signatureScript, /api\/sign\/document/);
   assert.match(await (await fetch(`${base}/evenements/public`)).text(), /event-detail/);
   const admin = await (await fetch(`${base}/admin`)).text();
   assert.match(admin, /Administration/);

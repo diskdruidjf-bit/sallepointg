@@ -6,7 +6,8 @@
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "PUBLIC_SITE_URL": "https://sallepointg.ca",
-    "SIGNATURE_FROM_EMAIL": "Salle Point G <contrats@sallepointg.ca>"
+    "SIGNATURE_FROM_EMAIL": "Salle Point G <contrats@sallepointg.ca>",
+    "CONTRACT_NOTIFICATION_EMAIL": "info@stgeorgestaverne.ca"
   },
   "d1_databases": [
     {

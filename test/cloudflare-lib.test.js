@@ -80,3 +80,12 @@ test('reproduit les signatures des deux parties dans l’acceptation de l’anne
   assert.deepEqual(signatureFieldsForRole('tenant'),['signature_locataire','annexe_sign_locataire']);
   assert.deepEqual(signatureFieldsForRole('locator'),['signature_locateur','annexe_sign_locateur']);
 });
+
+test('préremplit le document présenté avant la signature avec les données révisées', async () => {
+  const { contractPdfValues }=await import('../functions/_contract_pdf.js');
+  const values=contractPdfValues({tenantName:'Client Révisé',tenantAddress:'99, rue Test',tenantEmail:'client@example.com',tenantPhone:'450 555-0101',tenantNeq:'',eventDate:'2026-12-01',eventType:'Réception privée',minorsCount:'2',accessTime:'17:00',guestTime:'18:00',roomPrice:'750 $',roomTaxes:'112,31 $',deposit:'250 $',roomBalance:'612,31 $',securityDeposit:'0 $',mealPlan:'Menu révisé',mealCount:'30',mealDeadline:'2026-11-24',mealPayment:'tenant',mealAllocation:'Payé par le locataire',beveragePayment:'limit',beverageTerms:'Plafond de 500 $',otherPurchases:'Aucun',onsiteContact:'Responsable',onsitePhone:'450 555-0199',locatorName:'Salle Point G',locatorEmail:'contrats@sallepointg.ca'});
+  assert.equal(values.nom_locataire,'Client Révisé');
+  assert.equal(values.prix_salle,'750 $');
+  assert.equal(values.repas_formule,'Menu révisé');
+  assert.match(values.boissons_modalites,/Plafond de 500 \$/);
+});
