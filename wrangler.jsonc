@@ -4,6 +4,10 @@
   "pages_build_output_dir": ".",
   "compatibility_date": "2026-08-25",
   "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "PUBLIC_SITE_URL": "https://sallepointg.ca",
+    "SIGNATURE_FROM_EMAIL": "Salle Point G <contrats@sallepointg.ca>"
+  },
   "d1_databases": [
     {
       "binding": "DB",
