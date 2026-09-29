@@ -18,7 +18,8 @@
       <form id="login-form" class="admin-form"><label>Mot de passe<input name="password" type="password" autocomplete="current-password" required/></label><button class="button" type="submit">Se connecter</button><p class="form-message" role="alert"></p></form>
     </section>
     <section id="dashboard" class="hidden">
-      <div class="admin-title"><div><p class="kicker dark">Espace privé</p><h1>Les événements.</h1></div><button id="new-event" class="button" type="button">Nouvel événement</button></div>
+      <div class="admin-tabs" role="tablist"><button class="admin-tab active" data-panel="events-panel" type="button">Événements</button><button class="admin-tab" data-panel="contracts-panel" type="button">Contrats <span id="contract-count"></span></button></div>
+      <div id="events-panel" class="admin-panel"><div class="admin-title"><div><p class="kicker dark">Espace privé</p><h1>Les événements.</h1></div><button id="new-event" class="button" type="button">Nouvel événement</button></div>
       <div class="admin-layout">
         <div id="admin-list" class="admin-list"></div>
         <form id="event-form" class="admin-form event-editor hidden">
@@ -42,6 +43,20 @@
           <div class="editor-actions"><button class="button" type="submit">Enregistrer</button><button id="delete-event" class="text-button hidden" type="button">Supprimer</button></div>
           <p class="form-message" role="alert"></p>
         </form>
+      </div></div>
+      <div id="contracts-panel" class="admin-panel hidden"><div class="admin-title"><div><p class="kicker dark">Espace privé</p><h1>Les contrats.</h1></div><a class="button" href="/contrat-location" target="_blank" rel="noreferrer">Ouvrir le formulaire</a></div>
+        <div class="admin-layout"><div id="contract-list" class="admin-list"></div>
+          <form id="contract-editor" class="admin-form event-editor hidden"><input name="id" type="hidden"/><div class="editor-heading"><h2>Valider le contrat</h2><button id="cancel-contract" class="icon-button" type="button" aria-label="Fermer">×</button></div>
+            <div class="contract-status-line"><span id="contract-status" class="status"></span><small id="contract-submitted"></small></div>
+            <label>Nom du locataire<input name="tenantName" required/></label><label>Adresse<textarea name="tenantAddress" rows="2" required></textarea></label><label>Courriel<input name="tenantEmail" type="email" required/></label><label>Téléphone<input name="tenantPhone" required/></label><label>NEQ<input name="tenantNeq"/></label>
+            <label>Date de l’événement<input name="eventDate" type="date" required/></label><label>Nature de l’événement<input name="eventType" required/></label><label>Heure d’accès<input name="accessTime" type="time" required/></label><label>Arrivée des invités<input name="guestTime" type="time" required/></label><label class="checkbox"><input name="minorsPresent" type="checkbox"/> Présence de personnes mineures</label><label>Nombre approximatif de mineurs<input name="minorsCount" type="number" min="0"/></label>
+            <label>Prix de la salle<input name="roomPrice"/></label><label>Taxes<input name="roomTaxes"/></label><label>Acompte et échéance<input name="deposit"/></label><label>Solde et échéance<input name="roomBalance"/></label><label>Dépôt de garantie<input name="securityDeposit"/></label>
+            <label>Formule de repas<textarea name="mealPlan" rows="3"></textarea></label><label>Nombre de repas<input name="mealCount" type="number" min="0"/></label><label>Date limite des repas<input name="mealDeadline" readonly/></label><label>Paiement des repas<select name="mealPayment"><option value="guests">Chaque invité</option><option value="tenant">Locataire</option><option value="other">Autre</option></select></label><label>Répartition des repas<textarea name="mealAllocation" rows="2"></textarea></label>
+            <label>Paiement des boissons<select name="beveragePayment"><option value="guests">Chaque invité</option><option value="tenant">Locataire</option><option value="limit">Plafond</option><option value="quantity">Quantité précise</option></select></label><label>Modalités des boissons<textarea name="beverageTerms" rows="2"></textarea></label><label>Autres achats<textarea name="otherPurchases" rows="2"></textarea></label><label>Responsable sur place<input name="onsiteContact" required/></label><label>Cellulaire du responsable<input name="onsitePhone" required/></label><label>Notes<textarea name="notes" rows="3"></textarea></label>
+            <label>Représentant du locateur<input name="locatorName" required placeholder="Nom de la personne qui signera"/></label><label>Courriel du représentant du locateur<input name="locatorEmail" type="email" required/></label><input name="accepted" type="hidden" value="true"/>
+            <div class="editor-actions"><button id="save-contract" class="button" type="submit">Enregistrer les modifications</button><button id="send-contract" class="button dark" type="button">Envoyer pour signature</button><a id="download-contract" class="text-button hidden" href="#">Télécharger la copie signée</a></div><p class="form-message" role="alert"></p>
+          </form>
+        </div>
       </div>
     </section>
   </div></main>

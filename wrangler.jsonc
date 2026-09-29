@@ -17,6 +17,11 @@
       "binding": "EVENT_IMAGES",
       "bucket_name": "sallepointg-event-images",
       "preview_bucket_name": "sallepointg-event-images-preview"
+    },
+    {
+      "binding": "CONTRACT_FILES",
+      "bucket_name": "sallepointg-contract-files",
+      "preview_bucket_name": "sallepointg-contract-files-preview"
     }
   ],
   "observability": { "enabled": true }

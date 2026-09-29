@@ -79,6 +79,8 @@ test('sert les pages publiques et privées', async t => {
   const locationPage = await (await fetch(`${base}/location-salle-saint-jerome`)).text();
   assert.match(locationPage, /Location de salle privée/);
   assert.match(locationPage, /Questions fréquentes/);
+  const contractPage = await (await fetch(`${base}/contrat-location`)).text();
+  assert.match(contractPage, /Contrat de/); assert.match(contractPage, /Tolérance zéro/); assert.match(contractPage, /sept jours avant/);
   assert.match(await (await fetch(`${base}/evenements/public`)).text(), /event-detail/);
   const admin = await (await fetch(`${base}/admin`)).text();
   assert.match(admin, /Administration/);
@@ -93,6 +95,7 @@ test('sert les pages publiques et privées', async t => {
   assert.match(popupScript, /jeudis-humour-popup\.png/); assert.match(popupScript, /external-ticket-trigger/);
   assert.match(popupScript, /api\/events\/soireehumourpointg011026/); assert.match(popupScript, /Nos autres événements/);
   assert.match(admin, /Billetterie externe/); assert.match(admin, /Événement organisé par un tiers/);
+  assert.match(admin, /Envoyer pour signature/); assert.match(admin, /id="contracts-panel"/);
   const migration=await fs.readFile(path.resolve(__dirname, '../migrations/0002_ticketing_options.sql'),'utf8'); assert.match(migration,/ticketType/); assert.match(migration,/externalOrganizer/);
   assert.match(await fs.readFile(path.resolve(__dirname, '../js/event.js'),'utf8'), /agit uniquement comme lieu d’accueil/);
 });

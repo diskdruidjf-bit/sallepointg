@@ -49,3 +49,11 @@ test('reçoit une image encodée explicitement en JSON', async () => {
   await storeEventImage({EVENT_IMAGES:{put:async(...args)=>{stored=args;}}},parsed.image);
   assert.equal(stored[1].byteLength,8); assert.equal(stored[2].httpMetadata.contentType,'image/png');
 });
+
+test('valide le contrat et calcule la date limite des repas côté serveur', async () => {
+  const { cleanContract, dateMinusDays } = await import('../functions/_lib.js');
+  assert.equal(dateMinusDays('2026-12-01', 7), '2026-11-24');
+  const contract=cleanContract({tenantName:'Client Test',tenantAddress:'1, rue Test',tenantEmail:'client@example.com',tenantPhone:'450 555-0101',eventDate:'2026-12-01',eventType:'Réception privée',accessTime:'17:00',guestTime:'18:00',onsiteContact:'Client Test',onsitePhone:'450 555-0101',accepted:true,mealDeadline:'2099-01-01'});
+  assert.equal(contract.mealDeadline,'2026-11-24'); assert.equal(contract.status,'submitted');
+  assert.throws(()=>cleanContract({...contract,accepted:false}),/confirmer/);
+});

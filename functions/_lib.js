@@ -119,3 +119,56 @@ export function imageUploadInfo(bytes, contentType) {
 export function logError(error, request) {
   console.error(JSON.stringify({ message: 'request failed', path: new URL(request.url).pathname, error: error instanceof Error ? error.message : String(error) }));
 }
+
+const CONTRACT_STATUSES = ['submitted', 'approved', 'sent', 'client_signed', 'signed', 'declined', 'cancelled'];
+
+export function dateMinusDays(value, days) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+  if (!match) return '';
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  if (Number.isNaN(date.getTime())) return '';
+  date.setUTCDate(date.getUTCDate() - days);
+  return date.toISOString().slice(0, 10);
+}
+
+export function cleanContract(input, existing = {}) {
+  const text = (name, max = 3000) => String(input[name] ?? existing[name] ?? '').trim().slice(0, max);
+  const bool = name => input[name] === true || input[name] === 'true' || input[name] === 'on' || (input[name] == null && Boolean(existing[name]));
+  const eventDate = text('eventDate', 10);
+  const contract = {
+    id: existing.id || crypto.randomUUID(), status: CONTRACT_STATUSES.includes(input.status) ? input.status : (existing.status || 'submitted'),
+    tenantName: text('tenantName', 180), tenantAddress: text('tenantAddress', 500), tenantEmail: text('tenantEmail', 254).toLowerCase(), tenantPhone: text('tenantPhone', 40), tenantNeq: text('tenantNeq', 20),
+    eventDate, eventType: text('eventType', 300), minorsPresent: bool('minorsPresent'), minorsCount: text('minorsCount', 4), accessTime: text('accessTime', 5), guestTime: text('guestTime', 5),
+    roomPrice: text('roomPrice', 30), roomTaxes: text('roomTaxes', 30), deposit: text('deposit', 100), roomBalance: text('roomBalance', 100), securityDeposit: text('securityDeposit', 30),
+    mealPlan: text('mealPlan', 1000), mealCount: text('mealCount', 5), mealDeadline: dateMinusDays(eventDate, 7), mealPayment: ['guests','tenant','other'].includes(input.mealPayment) ? input.mealPayment : (existing.mealPayment || 'guests'), mealAllocation: text('mealAllocation', 500),
+    beveragePayment: ['guests','tenant','limit','quantity'].includes(input.beveragePayment) ? input.beveragePayment : (existing.beveragePayment || 'guests'), beverageTerms: text('beverageTerms', 500), otherPurchases: text('otherPurchases', 500),
+    onsiteContact: text('onsiteContact', 180), onsitePhone: text('onsitePhone', 40), notes: text('notes', 2000),
+    locatorName: text('locatorName', 180), locatorEmail: text('locatorEmail', 254).toLowerCase(), accepted: bool('accepted'),
+    signatureRequestId: existing.signatureRequestId || '', signedFileKey: existing.signedFileKey || ''
+  };
+  if (!contract.tenantName || !contract.tenantAddress || !contract.tenantEmail || !contract.tenantPhone || !contract.eventDate || !contract.eventType || !contract.accessTime || !contract.guestTime || !contract.onsiteContact || !contract.onsitePhone) throw new Error('Veuillez remplir tous les champs obligatoires.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contract.tenantEmail)) throw new Error('L’adresse courriel du locataire est invalide.');
+  if (Number.isNaN(Date.parse(`${contract.eventDate}T12:00:00Z`))) throw new Error('La date de l’événement est invalide.');
+  if (contract.minorsPresent && (!/^\d{1,4}$/.test(contract.minorsCount) || Number(contract.minorsCount) < 1)) throw new Error('Indiquez le nombre approximatif de personnes mineures.');
+  if (!contract.accepted) throw new Error('Le locataire doit confirmer avoir lu et accepté les conditions.');
+  return contract;
+}
+
+export function contractFromRow(row) {
+  if (!row) return null;
+  return {
+    id: row.id, status: row.status, tenantName: row.tenant_name, tenantAddress: row.tenant_address, tenantEmail: row.tenant_email, tenantPhone: row.tenant_phone, tenantNeq: row.tenant_neq,
+    eventDate: row.event_date, eventType: row.event_type, minorsPresent: Boolean(row.minors_present), minorsCount: row.minors_count, accessTime: row.access_time, guestTime: row.guest_time,
+    roomPrice: row.room_price, roomTaxes: row.room_taxes, deposit: row.deposit, roomBalance: row.room_balance, securityDeposit: row.security_deposit,
+    mealPlan: row.meal_plan, mealCount: row.meal_count, mealDeadline: row.meal_deadline, mealPayment: row.meal_payment, mealAllocation: row.meal_allocation,
+    beveragePayment: row.beverage_payment, beverageTerms: row.beverage_terms, otherPurchases: row.other_purchases, onsiteContact: row.onsite_contact, onsitePhone: row.onsite_phone, notes: row.notes,
+    locatorName: row.locator_name, locatorEmail: row.locator_email, accepted: Boolean(row.accepted), signatureRequestId: row.signature_request_id || '', signedFileKey: row.signed_file_key || '',
+    submittedAt: row.submitted_at, updatedAt: row.updated_at, sentAt: row.sent_at, signedAt: row.signed_at
+  };
+}
+
+export const CONTRACT_COLUMNS = ['id','status','tenant_name','tenant_address','tenant_email','tenant_phone','tenant_neq','event_date','event_type','minors_present','minors_count','access_time','guest_time','room_price','room_taxes','deposit','room_balance','security_deposit','meal_plan','meal_count','meal_deadline','meal_payment','meal_allocation','beverage_payment','beverage_terms','other_purchases','onsite_contact','onsite_phone','notes','locator_name','locator_email','accepted'];
+
+export function contractValues(contract) {
+  return [contract.id,contract.status,contract.tenantName,contract.tenantAddress,contract.tenantEmail,contract.tenantPhone,contract.tenantNeq,contract.eventDate,contract.eventType,contract.minorsPresent?1:0,contract.minorsCount,contract.accessTime,contract.guestTime,contract.roomPrice,contract.roomTaxes,contract.deposit,contract.roomBalance,contract.securityDeposit,contract.mealPlan,contract.mealCount,contract.mealDeadline,contract.mealPayment,contract.mealAllocation,contract.beveragePayment,contract.beverageTerms,contract.otherPurchases,contract.onsiteContact,contract.onsitePhone,contract.notes,contract.locatorName,contract.locatorEmail,contract.accepted?1:0];
+}
